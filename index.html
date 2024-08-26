@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <link rel="icon" type="image/png" href="/favicon.png"/>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+    <title>Candybox</title>
+    <style>
+        body {
+            -webkit-user-select: none; /* Safari */
+            -ms-user-select: none; /* IE 10 and IE 11 */
+            user-select: none; /* Standard syntax */
+            -webkit-text-size-adjust: 100%;
+            margin: 0; /* No margin ! */
+            overflow-y: scroll; /* In order to always show the vertical scrolling bar */
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .bodyLight {
+            color: black;
+            background-color: white;
+        }
+
+        .bodyDark {
+            color: white;
+            background-color: #1e1e1e;
+        }
+
+        .bodyDark a {
+            color: lightblue;
+        }
+
+        a:visited {
+            color: cadetblue;
+        }
+
+        /* Special class needed when we invert colors, used by elements which want to keep the normal black text when colors are inverted (the buttons to cast spells while questing, for example) */
+
+        .keepBlackTextWhenInverted {
+            color: #1e1e1e;
+        }
+
+        #aroundStatusBar {
+            z-index: 100; /* With this z-index, the status bar will be displayed over the main content (useful when showing the map) */
+            width: 140px;
+            height: 100svh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow: hidden;
+            display: flex;
+            padding-right: 2px;
+            justify-content: flex-start;
+        }
+
+        /*.bodyLight #aroundStatusBar {*/
+        /*    background-color: #888888;*/
+        /*}*/
+
+        /*.bodyDark #aroundStatusBar {*/
+        /*    background-color: #888888;*/
+        /*}*/
+
+
+        #statusBar {
+            left: 0;
+            margin: 0 auto; /* Centering */
+            height: 100svh;
+            /*display: flex;*/
+            width: 100%;
+            /*flex-direction: column;*/
+        }
+
+        .bodyLight #statusBar {
+            background-color: white;
+        }
+
+        .bodyDark #statusBar {
+            background-color: #1e1e1e;
+        }
+
+        .statusBarResource {
+            /*padding: 2px*/
+        }
+
+        #mainContent {
+            position: relative;
+            margin-top: 0; /* To avoid having a gap between the main content and the div around it */
+            margin-bottom: 0;
+            display: inline-block; /* Centering */
+            margin: 0 auto; /* Centering */
+            /*overflow: scroll;*/
+            right: 0;
+        }
+
+        #contentContainer {
+            /*font-size: calc(100svw / 73);*/
+            font-size: calc(83svw / 64);
+            /*font-size: 1em;*/
+            /*overflow: scroll;*/
+            /*left: calc(16svw);*/
+            position: fixed;
+            left: 140px;
+            width: calc(100svw - 140px);
+            overflow: scroll;
+            z-index: 50;
+            line-height: calc(83svw / 64);
+        }
+
+        .bodyLight #contentContainer {
+            background-color: white;
+        }
+
+        .bodyDark #contentContainer {
+            background-color: #1e1e1e;
+        }
+
+        #questLogContainer {
+            font-size: calc(83svw / 64);
+            position: fixed;
+            left: 140px;
+            display: none;
+            bottom: 8svh;
+            width: calc(100svw - 140px);
+            overflow: hidden;
+            z-index: 50;
+            height: 3svh;
+        }
+
+        .bodyDark #questLogContainer {
+            background-color: #423d3d;
+        }
+
+        .bodyLight #questLogContainer {
+            background-color: #eaeaea;
+        }
+
+        .questLog {
+            margin: 0
+        }
+
+        #spellsContainer {
+            height: 8svh;
+            left: 140px;
+            position: fixed;
+            bottom: 0;
+            font-size: calc(10svw / 6);
+            width: calc(100svw - 140px);
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .bodyLight #spellsContainer {
+            background-color: #cccccc;
+        }
+
+        #aroundSpellsButtons {
+            position: fixed;
+            width: calc(100svw - 140px - 10px);
+            right: 0;
+            bottom: 12svh;
+            z-index: 101;
+            flex-direction: column;
+            justify-content: flex-end;
+            display: none;
+        }
+
+        .showSpells .contentContainer {
+            height: 92svh;
+        }
+
+        .showSpells .mainContent {
+            min-width: 84svw
+        }
+
+        .hideSpells .contentContainer {
+            height: 100svh
+        }
+
+        .hideSpells .mainContent {
+            min-width: 84svw
+        }
+
+        #versionNumber {
+            position: fixed;
+            bottom: 0px;
+            left: 10px;
+            font-size: 10px;
+        }
+
+        /* Pre tag */
+
+        pre {
+            font-family: monospace; /* The pre tag will use the generic "monospace" font family, which should be the default anyway */
+            /*font-size: 1em;*/
+        }
+
+        /* asciiButton class, used for buttons inside ascii art */
+
+        .asciiButton {
+            cursor: pointer; /* To change the pointer when we pass the mouse on the link */
+            user-select: none;
+        }
+
+        /* asciiNinjaButton class, used for buttons hidden inside ascii art */
+
+        .asciiNinjaButton {
+            user-select: none;
+        }
+
+        /* aroundRealButton class, used by the span tag around real buttons */
+
+        .aroundRealButton {
+            user-select: none;
+        }
+
+        /* asciiRealButton class, used for buttons inside ascii art with borders and stuff */
+
+        .asciiRealButton {
+            cursor: pointer; /* To change the pointer when we pass the mouse on the button */
+
+            /* The border itself */
+            border-width: 1px;
+            border-style: solid;
+
+            padding: 2px;
+
+            /* Position absolute inside the aroundRealButton span */
+            position: absolute;
+            user-select: none;
+        }
+
+        .bodyLight .asciiRealButton {
+            background-color: #dcdad5;
+            border-color: #464c54;
+        }
+
+        .bodyDark .asciiRealButton {
+            border-color: rgb(185, 179, 171);
+            background-color: rgb(35, 37, 42);
+        }
+
+
+        /* Comments */
+
+        .aroundComment {
+            /*display: none; !* The comment must be hidden by default ! *!*/
+            cursor: pointer; /* To change the pointer when we pass the mouse on the comment */
+        }
+
+        .comment {
+            position: absolute; /* The comment itself has an absolute position relatively to the aroundComment span */
+        }
+
+        .bodyLight .comment {
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+
+        .bodyDark .comment {
+            background-color: rgba(0, 0, 0, 0.9);
+        }
+
+        .englishComment {
+            font-weight: bold;
+        }
+
+        .translated {
+            font-style: italic;
+        }
+
+        /* Select */
+
+        .aroundSelect {
+
+        }
+
+        .asciiSelect {
+            font-family: monospace;
+            position: absolute;
+        }
+
+        .asciiSelectOption {
+
+        }
+
+        /* Text input */
+
+        .aroundTextInput {
+
+        }
+
+        .asciiTextInput {
+            font-family: monospace;
+            position: absolute;
+        }
+
+        /* Enigma */
+
+        .enigmaWrongMessage {
+            visibility: hidden;
+        }
+
+        /* Tooltips */
+
+        .tooltip {
+            text-decoration: none;
+            display: none;
+            white-space: normal; /* To force breaklines in tooltips */
+            text-align: left;
+            font-style: normal;
+            position: fixed;
+            padding: 5px;
+            margin: 5px;
+            border: 1px solid;
+            font-family: monospace;
+            width: 200px;
+            z-index: 99999; /* The tooltip must be above everything */
+        }
+
+        .bodyLight .tooltip {
+            background-color: rgb(255, 255, 255);
+            border-color: #1e1e1e;
+        }
+
+        .bodyDark .tooltip {
+            background-color: #1e1e1e;
+            border-color: rgb(255, 255, 255);
+        }
+
+        /* Checkboxes */
+
+        .aroundCheckbox {
+            position: absolute;
+        }
+
+        .asciiCheckbox {
+
+        }
+
+        .relativePos {
+            position: relative !important;
+        }
+
+        /* Textareas */
+
+        .textarea {
+            resize: none; /* We must not be able to resize textareas because it would cause many bugs linked to how we handle ascii render areas.. */
+            position: absolute;
+            width: calc(100% - 70px);
+        }
+    </style>
+</head>
+<body class="hideSpells bodyLight"
+      style="padding: 0; margin: 0; width: 100svw; height: 100svh; overflow: hidden; text-align: center">
+<div style="font-size: 14px; left: 0; font-family: monospace">
+    <div id="aroundStatusBar">
+        <pre id="statusBar"></pre>
+    </div>
+</div>
+<div class="contentContainer" id="contentContainer">
+    <pre class="mainContent" id="mainContent"></pre>
+    <pre id="getExValue" style="position: fixed; z-index: -1000; left: -10px; top: -10px">-</pre>
+</div>
+<div class="questLogContainer" id="questLogContainer">
+    <pre class="questLog" id="questLog"></pre>
+</div>
+<div id="spellsContainer">
+    <pre id="spellsBar"
+         style="margin:0; display: flex; align-items: center; justify-content: flex-start; gap: 2%; height: 100%; padding-left: 5px"></pre>
+</div>
+<div id="aroundSpellsButtons">
+    <pre id="spellsButtons"
+         style="margin: 0; display: flex; justify-content: flex-start; flex-wrap: wrap; gap: 10px"></pre>
+</div>
+<script type="module" src="/src/main.ts"></script>
+<script>
+    document.querySelector("body").oncontextmenu = e => {
+        e.preventDefault()
+        e.stopPropagation()
+        e.stopImmediatePropagation()
+        return false
+    }
+    const onMessage = event => {
+        try {
+            const data = JSON.parse(event.data);
+            if (data.message === "removeAds") {
+                localStorage.setItem("removeAds", "1")
+                console.log("removing ads")
+            } else if (data.message === "adReward") {
+                dispatchEvent(new CustomEvent("adReward"))
+            } else if (data.message === "unRemoveAds") {
+                localStorage.removeItem("removeAds")
+            }
+        } catch (e) {
+        }
+    }
+    document.addEventListener('message', onMessage);
+    window.addEventListener('message', onMessage);
+
+    if (window.ReactNativeWebView) {
+        const consoleLog = (type, log) => window.ReactNativeWebView.postMessage("[LOG]" + JSON.stringify({
+            'type': 'Console',
+            'data': {'type': type, 'log': log}
+        }));
+        console = {
+            log: (log) => consoleLog('log', log),
+            debug: (log) => consoleLog('debug', log),
+            info: (log) => consoleLog('info', log),
+            warn: (log) => consoleLog('warn', log),
+            error: (log) => consoleLog('error', log),
+        };
+    }
+    console.log("ready")
+</script>
+</body>
+</html>
