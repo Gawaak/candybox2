@@ -1,5 +1,4 @@
-Candy Box 2 - source code  body{ font-family: monospace; font-size: 15px; } p{ text-indent: 2em; }
-
+Candy Box 
 License
 -------
 
